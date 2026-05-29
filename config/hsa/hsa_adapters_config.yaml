@@ -678,7 +678,6 @@ gtex_expression:
   nodes: False
   edges: True
 
-
 hocomoco:
   adapter:
     module: biocypher_metta.adapters.hocomoco_motif_adapter
@@ -2040,7 +2039,7 @@ string_coexpression:
     module: biocypher_metta.adapters.string_coexpression_adapter
     cls: StringCoexpressionAdapter
     args:
-      filepath: ./samples/hsa/string/9606.protein.links.detailed.v12.0.txt.gz
+      filepath: string/9606.protein.links.detailed.v12.0.txt.gz
       label: protein_coexpressed_with
       coexpression_threshold: 400
       taxon_id: 9606
