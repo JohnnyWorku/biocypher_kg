@@ -63,8 +63,9 @@ tflink:
 
 string:
   name: STRING PPI
-  url: https://stringdb-downloads.org/download/protein.links.v12.0/6239.protein.links.v12.0.txt.gz
-  url: https://stringdb-downloads.org/download/protein.links.detailed.v12.0/6239.protein.links.detailed.v12.0.txt.gz  # detailed version
+  url:
+    - https://stringdb-downloads.org/download/protein.links.v12.0/6239.protein.links.v12.0.txt.gz
+    - https://stringdb-downloads.org/download/protein.links.detailed.v12.0/6239.protein.links.detailed.v12.0.txt.gz  # detailed version
 
 
 epd:
