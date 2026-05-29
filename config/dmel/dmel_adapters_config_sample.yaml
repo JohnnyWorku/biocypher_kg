@@ -1388,7 +1388,7 @@ alliance_gene_orthology:
     module: biocypher_metta.adapters.alliance_gene_orthology_adapter
     cls: AllianceGeneOrthologyAdapter
     args:
-      filepath: ./samples/alliance/DISEASTHOLOGY-ALLIANCE_COMBINED.tsv.gz
+      filepath: ./samples/alliance/ORTHOLOGY-ALLIANCE_COMBINED.tsv.gz
       taxon_id: 7227
       label: orthologs_genes
   outdir: alliance/orthology
