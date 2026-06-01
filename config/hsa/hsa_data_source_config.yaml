@@ -32,6 +32,7 @@ catlas:
   directories:
     cCREs: https://decoder-genetics.wustl.edu/catlasv1/humanenhancer/data/cCREs/
     ABC_scores: https://decoder-genetics.wustl.edu/catlasv1/humanenhancer/data/ABC_scores/
+
 cCRE:
   name: Screen candidate Cis-Regulatory Region
   compress: gzip

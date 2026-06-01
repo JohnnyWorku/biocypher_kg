@@ -70,10 +70,9 @@ string:
     - https://stringdb-downloads.org/download/protein.links.v12.0/10090.protein.links.v12.0.txt.gz
     - https://stringdb-downloads.org/download/protein.links.detailed.v12.0/10090.protein.links.detailed.v12.0.txt.gz
 
-
 tflink:
   name: TFLink
-  compress: gzip
+  extract: false
   url: https://cdn.netbiol.org/tflink/download_files/TFLink_Mus_musculus_interactions_All_simpleFormat_v1.0.tsv.gz
 
 uniprot:

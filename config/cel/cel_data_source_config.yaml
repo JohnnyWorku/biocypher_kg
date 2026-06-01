@@ -32,11 +32,8 @@ ensembl:
 
 epd:
   name: Eukaryotic Promoter Database
-  url:
-    # - https://epd.epfl.ch/EPD/get_promoter_seq?db=hg38&format=bed&nb_seq=0
-    # - https://epd.expasy.org/ftp/epdnew/D_melanogaster/current/
-    - https://epd.expasy.org/ftp/epdnew/C_elegans/current/Ce_EPDnew.bed
-
+  compress: gzip
+  url: https://epd.expasy.org/ftp/epdnew/C_elegans/current/Ce_EPDnew.bed
 
 gaf:
   name: GO Annotation File (GAF) from GO (WormBase-wb)
@@ -69,6 +66,7 @@ string:
 
 tflink:
   name: TFLink
+  compress: gzip
   url: https://cdn.netbiol.org/tflink/download_files/TFLink_Caenorhabditis_elegans_interactions_All_simpleFormat_v1.0.tsv
 
 
