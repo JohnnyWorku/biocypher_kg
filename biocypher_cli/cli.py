@@ -7,6 +7,7 @@ import sys
 import logging
 from pathlib import Path
 from typing import List
+import questionary
 from questionary import select, confirm
 from rich.panel import Panel
 from rich.table import Table
@@ -36,7 +37,7 @@ def build_default_fly_command() -> List[str]:
         "--writer-type", "neo4j", "--no-add-provenance"
     ]
 
-def run_generation(cmd: List[str], show_logs: bool) -> None:
+def  run_generation(cmd: List[str], show_logs: bool) -> None:
     try:
         console.print("\n[bold]Starting knowledge graph generation...[/]\n")
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, cwd=str(PROJECT_ROOT), bufsize=1, universal_newlines=True)

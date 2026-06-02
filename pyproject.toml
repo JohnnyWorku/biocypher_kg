@@ -3,7 +3,7 @@ name = "biocypher-metta"
 version = "0.0.1"
 description = "Library creating a BioCypher-driven knowledge graph for Opencog Hyperon, Neo4j and Prolog"
 authors = [
-    "Abdulrahman S. Omar <xabush@singularitynet.io>",
+    { name = "Abdulrahman S. Omar", email = "xabush@singularitynet.io" }
 ]
 readme = "README.md"
 requires-python = ">=3.10"
