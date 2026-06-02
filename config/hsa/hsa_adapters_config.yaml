@@ -678,7 +678,6 @@ gtex_expression:
   nodes: False
   edges: True
 
-
 hocomoco:
   adapter:
     module: biocypher_metta.adapters.hocomoco_motif_adapter
@@ -1489,7 +1488,7 @@ snp_to_upstream_gene:
     module: biocypher_metta.adapters.hsa.gwas_adapter
     cls: GWASAdapter
     args:
-      filepath: gwas/gwas-catalog-associations_ontology-annotated.tsv
+      filepath: gwas/gwas-catalog-download-associations-v1.0-full.tsv
       label: snp_upstream_gene
   outdir: gwas/upstream
   nodes: False
@@ -1500,7 +1499,7 @@ snp_to_downstream_gene:
     module: biocypher_metta.adapters.hsa.gwas_adapter
     cls: GWASAdapter
     args:
-      filepath: gwas/gwas-catalog-associations_ontology-annotated.tsv
+      filepath: gwas/gwas-catalog-download-associations-v1.0-full.tsv
       label: snp_downstream_gene
   outdir: gwas/downstream
   nodes: False
@@ -1511,7 +1510,7 @@ snp_to_in_gene:
     module: biocypher_metta.adapters.hsa.gwas_adapter
     cls: GWASAdapter
     args:
-      filepath: gwas/gwas-catalog-associations_ontology-annotated.tsv
+      filepath: gwas/gwas-catalog-download-associations-v1.0-full.tsv
       label: snp_in_gene
   outdir: gwas/ingene
   nodes: False
@@ -1976,7 +1975,7 @@ alliance_gene_disease_biomarker_orthology:
     module: biocypher_metta.adapters.alliance_gene_disease_adapter
     cls: AllianceGeneDiseaseAdapter
     args:
-      filepath: agr/DISEASE-ALLIANCE_COMBINED.tsv.gz
+      filepath: alliance/DISEASE-ALLIANCE_COMBINED.tsv.gz
       taxon_id: 9606
       label: biomarker_via_orthology
   outdir: disease
@@ -1988,7 +1987,7 @@ alliance_gene_disease_implicated_via_orthology:
     module: biocypher_metta.adapters.alliance_gene_disease_adapter
     cls: AllianceGeneDiseaseAdapter
     args:
-      filepath: agr/DISEASE-ALLIANCE_COMBINED.tsv.gz
+      filepath: alliance/DISEASE-ALLIANCE_COMBINED.tsv.gz
       taxon_id: 9606
       label: implicated_via_orthology
   outdir: disease
@@ -2000,7 +1999,7 @@ alliance_gene_disease_is_implicated_in:
     module: biocypher_metta.adapters.alliance_gene_disease_adapter
     cls: AllianceGeneDiseaseAdapter
     args:
-      filepath: agr/DISEASE-ALLIANCE_COMBINED.tsv.gz
+      filepath: alliance/DISEASE-ALLIANCE_COMBINED.tsv.gz
       taxon_id: 9606
       label: is_implicated_in
   outdir: disease
@@ -2016,7 +2015,7 @@ alliance_gene_disease_is_implicated_in:
 #     module: biocypher_metta.adapters.alliance_gene_disease_adapter
 #     cls: AllianceGeneDiseaseAdapter
 #     args:
-#       filepath: agr/DISEASE-ALLIANCE_COMBINED.tsv.gz
+#       filepath: alliance/DISEASE-ALLIANCE_COMBINED.tsv.gz
 #       taxon_id: 9606
 #       label: is_model_of
 #   outdir: disease
@@ -2028,7 +2027,7 @@ alliance_gene_disease_is_marker_for:
     module: biocypher_metta.adapters.alliance_gene_disease_adapter
     cls: AllianceGeneDiseaseAdapter
     args:
-      filepath: agr/DISEASE-ALLIANCE_COMBINED.tsv.gz
+      filepath: alliance/DISEASE-ALLIANCE_COMBINED.tsv.gz
       taxon_id: 9606
       label: is_marker_for
   outdir: disease
@@ -2040,7 +2039,7 @@ string_coexpression:
     module: biocypher_metta.adapters.string_coexpression_adapter
     cls: StringCoexpressionAdapter
     args:
-      filepath: ./samples/hsa/string/9606.protein.links.detailed.v12.0.txt.gz
+      filepath: string/9606.protein.links.detailed.v12.0.txt.gz
       label: protein_coexpressed_with
       coexpression_threshold: 400
       taxon_id: 9606
@@ -2053,7 +2052,7 @@ alliance_gene_orthology:
     module: biocypher_metta.adapters.alliance_gene_orthology_adapter
     cls: AllianceGeneOrthologyAdapter
     args:
-      filepath: agr/ORTHOLOGY-ALLIANCE_COMBINED.tsv.gz
+      filepath: alliance/ORTHOLOGY-ALLIANCE_COMBINED.tsv.gz
       taxon_id: 9606
       label: orthologs_genes
   outdir: alliance/orthology
