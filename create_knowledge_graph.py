@@ -26,6 +26,7 @@ from biocypher_metta.processors import DBSNPProcessor
 from biocypher_metta.prolog_writer import PrologWriter
 from checkpoint_manager import CheckpointManager, prompt_resume_or_restart
 from config.yaml_loader import load_yaml_with_includes
+from schema_generator.generate_data_source_schemas import SchemaGenerator
 
 
 app = typer.Typer()
@@ -266,14 +267,94 @@ def _add_file_logger(output_dir: Path) -> logging.FileHandler:
     return handler
 
 
-def _load_adapters_config(config_path: Path, context: str) -> dict:
+# Suffixes and exact names that identify path-holding adapter args.
+# Only these are resolved against input_dir; all other string args are left untouched.
+_PATH_ARG_SUFFIXES = ("filepath", "dirpath", "_file", "_path", "_tsv", "_pkl")
+_PATH_ARG_NAMES = {"filepaths", "data_filepaths", "aux_filepaths", "feature_files", "enhancer_gene_link"}
+
+
+def _is_path_arg(name: str) -> bool:
+    return name in _PATH_ARG_NAMES or any(name.endswith(s) for s in _PATH_ARG_SUFFIXES)
+
+
+def _maybe_prepend(value: str, input_dir: Path) -> str:
+    """Prepend input_dir to a bare path string (no leading /, ./, ../)."""
+    v = value.strip()
+    if not v or v.startswith("/") or v.startswith("./") or v.startswith("../"):
+        return v
+    return str(input_dir / v)
+
+
+def _resolve_input_paths(adapters_dict: dict, input_dir: Path) -> None:
+    """Prepend input_dir to every bare relative path string in adapter args."""
+    for adapter_entry in adapters_dict.values():
+        if not isinstance(adapter_entry, dict):
+            continue
+        args = (adapter_entry.get("adapter") or {}).get("args") or {}
+        for key, value in list(args.items()):
+            if not _is_path_arg(key):
+                continue
+            if key == "feature_files" and isinstance(value, list):
+                for item in value:
+                    if isinstance(item, dict) and isinstance(item.get("path"), str):
+                        item["path"] = _maybe_prepend(item["path"], input_dir)
+            elif isinstance(value, list):
+                args[key] = [
+                    _maybe_prepend(v, input_dir) if isinstance(v, str) else v
+                    for v in value
+                ]
+            elif isinstance(value, str):
+                args[key] = _maybe_prepend(value, input_dir)
+
+
+def _has_bare_paths(adapters_dict: dict) -> bool:
+    """Return True if any path-holding adapter arg has a bare (un-prefixed) value."""
+    def _is_bare(s: str) -> bool:
+        v = s.strip()
+        return bool(v) and not v.startswith("/") and not v.startswith("./") and not v.startswith("../")
+
+    for adapter_entry in adapters_dict.values():
+        if not isinstance(adapter_entry, dict):
+            continue
+        args = (adapter_entry.get("adapter") or {}).get("args") or {}
+        for key, value in args.items():
+            if not _is_path_arg(key):
+                continue
+            if isinstance(value, str):
+                if _is_bare(value):
+                    return True
+            elif key == "feature_files" and isinstance(value, list):
+                if any(
+                    isinstance(item, dict) and isinstance(item.get("path"), str) and _is_bare(item["path"])
+                    for item in value
+                ):
+                    return True
+            elif isinstance(value, list):
+                if any(isinstance(v, str) and _is_bare(v) for v in value):
+                    return True
+    return False
+
+
+def _load_adapters_config(
+    config_path: Path, context: str, input_dir: Optional[Path] = None
+) -> dict:
     with open(config_path, "r") as fp:
         try:
-            return load_yaml_with_includes(fp)
+            adapters_dict = load_yaml_with_includes(fp)
         except yaml.YAMLError as exc:
             logger.error(f"Error loading adapter config for {context}")
             logger.error(exc)
             raise typer.Exit(1)
+    yaml_input_dir = adapters_dict.pop("input_dir", None)
+    resolved = input_dir or (Path(yaml_input_dir) if yaml_input_dir else None)
+    if resolved is not None:
+        _resolve_input_paths(adapters_dict, resolved)
+    elif _has_bare_paths(adapters_dict):
+        logger.warning(
+            "Adapter config contains bare (un-prefixed) paths but no input_dir was set. "
+            "Pass --input-dir or add 'input_dir:' to the config."
+        )
+    return adapters_dict
 
 
 def _strip_taxon_id(items, is_edge: bool):
@@ -311,6 +392,15 @@ def _check_adapter_file_paths(adapters_dict: dict) -> dict:
                         if isinstance(path, str) and not Path(path).exists():
                             adapter_missing[f"feature_files[{i}].path"] = path
                 continue
+            if isinstance(value, list):
+                for i, item in enumerate(value):
+                    if not isinstance(item, str):
+                        continue
+                    if not (item.startswith("/") or item.startswith("./") or item.startswith("../")):
+                        continue
+                    if not Path(item).exists():
+                        adapter_missing[f"{arg_name}[{i}]"] = item
+                continue
             if not isinstance(value, str):
                 continue
             if not (value.startswith("/") or value.startswith("./") or value.startswith("../")):
@@ -333,6 +423,50 @@ def _report_missing_paths(missing: dict, include_hint: bool = True) -> None:
     if include_hint:
         logger.error("")
         logger.error("Fix the paths above or run with --skip-preflight to bypass this check.")
+
+
+def _default_data_source_schema_output_dir(
+    species_name: Optional[str],
+    kg_output_dir: Path,
+) -> Path:
+    if species_name:
+        return Path("data_source_schemas") / species_name
+    return kg_output_dir / "data_source_schemas"
+
+
+def _generate_data_source_schemas(
+    schema_config_path: Path,
+    adapters_config_path: Path,
+    adapters_dict: dict,
+    output_dir: Path,
+):
+    """Generate data source schemas for the same adapter set used by the KG run."""
+    logger.info(f"Generating data source schemas in {output_dir}")
+    generator = SchemaGenerator(
+        str(schema_config_path),
+        str(adapters_config_path),
+        "biocypher_metta/adapters",
+        str(output_dir),
+        adapter_config_data=adapters_dict,
+    )
+    generator.generate_all_schemas(filter_adapters=list(adapters_dict.keys()))
+
+
+def _try_generate_data_source_schemas(
+    schema_config_path: Path,
+    adapters_config_path: Path,
+    adapters_dict: dict,
+    output_dir: Path,
+) -> None:
+    try:
+        _generate_data_source_schemas(
+            schema_config_path,
+            adapters_config_path,
+            adapters_dict,
+            output_dir,
+        )
+    except Exception:
+        logger.exception("Data source schema generation failed; KG output was already written.")
 
 
 def process_adapters(
@@ -772,6 +906,22 @@ def main(
         help="Specific adapters to include (space-separated, default: all)",
         case_sensitive=False,
     ),
+    generate_data_source_schemas: bool = typer.Option(
+        True,
+        "--generate-data-source-schemas/--no-generate-data-source-schemas",
+        help="Generate data source schema YAML files for the adapters used in this KG run.",
+    ),
+    data_source_schema_output_dir: Optional[Path] = typer.Option(
+        None,
+        file_okay=False,
+        dir_okay=True,
+        help=(
+            "Directory for generated data source schemas. Defaults to "
+            "data_source_schemas/<species> in species mode, or "
+            "<output-dir>/data_source_schemas in manual mode. "
+            "When --species all is used, each species is written under this directory."
+        ),
+    ),
     no_checkpoint: bool = typer.Option(
         False,
         "--no-checkpoint",
@@ -799,6 +949,14 @@ def main(
             "Only --adapters-config is required in this mode."
         ),
     ),
+    input_dir: Optional[Path] = typer.Option(
+        None,
+        "--input-dir",
+        help=(
+            "Base directory for resolving bare (relative) input paths in the adapters config. "
+            "Overrides the input_dir field declared in the config YAML."
+        ),
+    ),
 ):
     """
     Main function. Call individual adapters to download and process data. Build
@@ -808,7 +966,7 @@ def main(
         if adapters_config is None:
             logger.error("--adapters-config is required with --check-only")
             raise typer.Exit(1)
-        adapters_dict = _load_adapters_config(adapters_config, str(adapters_config))
+        adapters_dict = _load_adapters_config(adapters_config, str(adapters_config), input_dir=input_dir)
         if include_adapters:
             include_lower = [a.lower() for a in include_adapters]
             adapters_dict = {k: v for k, v in adapters_dict.items() if k.lower() in include_lower}
@@ -832,6 +990,13 @@ def main(
         )
         logger.error(
             "  2. Provide all manual parameters (--output-dir, --adapters-config, --schema-config)"
+        )
+        raise typer.Exit(1)
+
+    if species == "all" and input_dir:
+        logger.error(
+            "--input-dir cannot be used with --species all: each species requires its own "
+            "input directory. Use the input_dir: field in each species-specific adapter config instead."
         )
         raise typer.Exit(1)
 
@@ -896,7 +1061,7 @@ def main(
                         bc.overwrite = overwrite
 
                     schema_dict = preprocess_schema(sp_schema_config)
-                    sp_adapters_dict = _load_adapters_config(sp_adapters_config, sp)
+                    sp_adapters_dict = _load_adapters_config(sp_adapters_config, sp, input_dir=input_dir)
 
                     if include_adapters:
                         original_count = len(sp_adapters_dict)
@@ -949,6 +1114,18 @@ def main(
                         datasets_dict,
                         kg_format=writer_type,
                     )
+
+                    if generate_data_source_schemas:
+                        if data_source_schema_output_dir:
+                            schema_output_dir = data_source_schema_output_dir / sp
+                        else:
+                            schema_output_dir = _default_data_source_schema_output_dir(sp, sp_output_dir)
+                        _try_generate_data_source_schemas(
+                            sp_schema_config,
+                            sp_adapters_config,
+                            sp_adapters_dict,
+                            schema_output_dir,
+                        )
 
                     if ckpt is not None:
                         ckpt.delete()
@@ -1081,7 +1258,7 @@ def main(
             bc.overwrite = overwrite
 
         schema_dict = preprocess_schema(schema_config)
-        adapters_dict = _load_adapters_config(adapters_config, str(adapters_config))
+        adapters_dict = _load_adapters_config(adapters_config, str(adapters_config), input_dir=input_dir)
 
         if include_adapters:
             original_count = len(adapters_dict)
@@ -1135,6 +1312,21 @@ def main(
             datasets_dict,
             kg_format=writer_type,
         )
+
+        if generate_data_source_schemas:
+            schema_output_dir = (
+                data_source_schema_output_dir
+                or _default_data_source_schema_output_dir(
+                    species if species_mode else None,
+                    output_dir,
+                )
+            )
+            _try_generate_data_source_schemas(
+                schema_config,
+                adapters_config,
+                adapters_dict,
+                schema_output_dir,
+            )
 
         if ckpt is not None:
             ckpt.delete()
