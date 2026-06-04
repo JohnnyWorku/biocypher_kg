@@ -521,7 +521,7 @@ class MORK:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        if "time" in self.finalization: print(f"{self.ns.format("*")} time {monotonic() - self.t0:.6f} s")
+        if "time" in self.finalization: print(f"{self.ns.format('*')} time {monotonic() - self.t0:.6f} s")
         if "clear" in self.finalization: self.clear().block()
         if "spin_down" in self.finalization:
             try: self.spin_down()
