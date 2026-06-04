@@ -62,7 +62,7 @@ class GAFAdapter(Adapter):
                              ', '.join(GAFAdapter.SOURCES.keys()))
 
         self.filepath = filepath
-        self.dataset = GAFAdapter.DATASET
+        self.gaf_dataset = GAFAdapter.DATASET
         self.type = gaf_type
         self.label = label
 
