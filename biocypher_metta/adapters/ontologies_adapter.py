@@ -40,8 +40,8 @@ class OntologyAdapter(Adapter):
         self.cache_expiration_days = cache_expiration_days
         if self.cache_dir and not os.path.exists(self.cache_dir):
             os.makedirs(self.cache_dir)
-        self.type = type
-        self.label = label
+        self.ontology_type = type
+        self.ontology_label = label
         self.dry_run = dry_run
         self.graph = None
         self.cache = {}
