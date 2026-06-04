@@ -35,7 +35,11 @@ def configuration_workflow(organism: str) -> Optional[Dict[str, Union[str, List[
             if selected_adapters: selections["--include-adapters"] = selected_adapters
     
     while True:
-        schema_files = {k: v for k, v in config_files.items() if "Schema" in k}
+        if organism == "human": 
+            schema_files = {k: v for k, v in config_files.items() if "Schema" in k and k.startswith("Human")}
+        else:    
+            schema_files = {k: v for k, v in config_files.items() if "Schema" in k and k.startswith("Fly")}
+        
         result = get_file_selection("Select schema config:", schema_files, allow_multiple=False, allow_custom=True)
         if result: selections["--schema-config"] = result; break
     
