@@ -9,5 +9,5 @@ __all__ = [
     'HTTPDownloader',
     # 'FTPDownloader',
     # 'GCPDownloader',
-    # 'LocalDownloader'
+    'LocalDownloader'
 ]
