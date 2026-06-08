@@ -44,12 +44,15 @@ def  run_generation(cmd: List[str], show_logs: bool) -> None:
         while True:
             stdout_line = process.stdout.readline()
             stderr_line = process.stderr.readline()
-            if stdout_line:
-                if stdout_line.startswith("INFO --"): console.print(stdout_line.strip())
-                else: console.print(f"[dim]{stdout_line.strip()}[/]")
-            if stderr_line:
-                if stderr_line.startswith("ERROR --"): console.print(f"[red]{stderr_line.strip()}[/]")
-                else: console.print(f"[yellow]{stderr_line.strip()}[/]")
+            
+            if show_logs:
+                if stdout_line:
+                    if stdout_line.startswith("INFO --"): console.print(stdout_line.strip())
+                    else: console.print(f"[dim]{stdout_line.strip()}[/]")
+                if stderr_line:
+                    if stderr_line.startswith("ERROR --"): console.print(f"[red]{stderr_line.strip()}[/]")
+                    else: console.print(f"[yellow]{stderr_line.strip()}[/]")
+                    
             if process.poll() is not None: break
         if process.returncode == 0:
             console.print(Panel.fit("[bold green]✔ Knowledge Graph generation completed successfully![/]", style="green"))
