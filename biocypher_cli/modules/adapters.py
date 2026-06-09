@@ -57,7 +57,7 @@ class {class_name}(Adapter):
         return str(save_path)
     except Exception as e:
         console.print(f"[red]✖ Error saving file: {str(e)}[/]")
-        return None
+        return f"Error saving file: {str(e)}"
 
 def get_yaml_input_adapter_config() -> str:
     console.print("\n[bold]Enter your adapter configuration in YAML format:[/]", style="blue")
@@ -71,7 +71,7 @@ def get_yaml_input_adapter_config() -> str:
         return save_temp_adapter_config(config)
     except Exception as e:
         console.print(f"[red]Error parsing YAML: {str(e)}[/]")
-        return None
+        return f"Error parsing YAML: {str(e)}"
 
 def build_custom_adapter_config() -> str:
     console.print("\n[bold]Building Custom Adapter Configuration[/]", style="blue")
@@ -80,7 +80,7 @@ def build_custom_adapter_config() -> str:
     elif choice == "yaml": return get_yaml_input_adapter_config()
     elif choice == "new_adapter":
         adapter_path = create_user_adapter_file()
-        if not adapter_path: return None
+        if not adapter_path: return "The adapter path can not be created or there is some faulty"
         adapter_name = Path(adapter_path).stem.replace('_adapter', '')
         module_path = f"adapters.user_adapters.{adapter_name}_adapter"
         class_name = ''.join([x.title() for x in adapter_name.split('_')]) + 'Adapter'

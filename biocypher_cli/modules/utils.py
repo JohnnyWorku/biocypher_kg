@@ -106,7 +106,7 @@ def get_file_selection(prompt: str, options: Dict[str, str], allow_multiple: boo
         else:
             selected = select(prompt, choices=choices).unsafe_ask()
         
-        if selected == "🔙 Back": return None
+        if selected == "🔙 Back": return "🔙 Back"
         if not isinstance(selected, list): selected = [selected]
         
         result = []

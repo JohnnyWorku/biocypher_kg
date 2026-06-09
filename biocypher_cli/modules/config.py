@@ -23,6 +23,7 @@ def configuration_workflow(organism: str) -> Optional[Dict[str, Union[str, List[
         elif choice == "existing":
             adapter_files = {k: v for k, v in config_files.items() if "Adapter" in k}
             result = get_file_selection("Select adapters config:", adapter_files, allow_multiple=False, allow_custom=True)
+            if result == "🔙 Back": return
             if result: selections["--adapters-config"] = result; break
         elif choice == "custom":
             custom_config = build_custom_adapter_config()
@@ -41,10 +42,12 @@ def configuration_workflow(organism: str) -> Optional[Dict[str, Union[str, List[
             schema_files = {k: v for k, v in config_files.items() if "Schema" in k and k.startswith("Fly")}
         
         result = get_file_selection("Select schema config:", schema_files, allow_multiple=False, allow_custom=True)
+        if result == "🔙 Back": return
         if result: selections["--schema-config"] = result; break
     
     while True:
         result = get_file_selection("Select dbSNP cache root:", aux_files, allow_multiple=False, allow_custom=True)
+        if result == "🔙 Back": return
         if result is None: continue
         selections["--dbsnp-cache-root"] = result; break
 
