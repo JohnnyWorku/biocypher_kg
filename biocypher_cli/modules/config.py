@@ -27,6 +27,7 @@ def configuration_workflow(organism: str) -> Optional[Dict[str, Union[str, List[
             if result: selections["--adapters-config"] = result; break
         elif choice == "custom":
             custom_config = build_custom_adapter_config()
+            if custom_config == "🔙 Back": return
             if custom_config: selections["--adapters-config"] = custom_config; break
     
     if choice == "existing":

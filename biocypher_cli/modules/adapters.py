@@ -76,7 +76,7 @@ def get_yaml_input_adapter_config() -> str:
 def build_custom_adapter_config() -> str:
     console.print("\n[bold]Building Custom Adapter Configuration[/]", style="blue")
     choice = select("Adapter configuration method:", choices=[{"name": "✍️ Write YAML directly", "value": "yaml"}, {"name": "🛠️ Use guided configuration", "value": "guided"}, {"name": "🐍 Create new Python adapter", "value": "new_adapter"}, "🔙 Back"], pointer="→").unsafe_ask()
-    if choice == "🔙 Back": return None
+    if choice == "🔙 Back": return "🔙 Back"
     elif choice == "yaml": return get_yaml_input_adapter_config()
     elif choice == "new_adapter":
         adapter_path = create_user_adapter_file()
