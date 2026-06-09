@@ -98,7 +98,7 @@ class BaseWriter(ABC):
         pass
 
     def extract_node_info(self, node):
-        id, label, properties = node
+        node_id, label, properties = node
         self.node_freq[label] += 1
         self.node_props[label] = self.node_props[label].union(properties.keys())
     
